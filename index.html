@@ -1,73 +1,50 @@
 <!doctype html>
 <html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title></title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title></title>
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      background: #ffffff;
-      display: none;
-    }
-  </style>
+<style>
+html, body {
+margin: 0;
+padding: 0;
+background: #ffffff;
+display: none;
+}
+</style>
 </head>
+
 <body>
 
 <script>
-  const numbers = [
-     "34680561813"
-  ];
 
-  const KEY_BAG = "wa_shuffle_bag_page3";
-  const KEY_LAST = "wa_last_pick_page3";
+const rawNumbers = [
+"34680561813"
+];
 
-  function shuffle(arr) {
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-  }
+const KEY_BAG = "wa_shuffle_bag_page3";
+const KEY_LAST = "wa_last_pick_page3";
 
-  function loadBag() {
-    try {
-      const raw = localStorage.getItem(KEY_BAG);
-      const bag = raw ? JSON.parse(raw) : null;
-      if (Array.isArray(bag) && bag.length > 0) return bag;
-    } catch {}
-    return null;
-  }
+function sanitizeNumbers(list){
+return [...new Set(
+list.map(v=>String(v).trim()).filter(v=>/^\d+$/.test(v))
+)];
+}
 
-  function saveBag(bag) {
-    localStorage.setItem(KEY_BAG, JSON.stringify(bag));
-  }
+const numbers = sanitizeNumbers(rawNumbers);
 
-  function pickNumber() {
-    let bag = loadBag();
-    const lastPick = localStorage.getItem(KEY_LAST) || "";
+function pickNumber(){
+if(!numbers.length) return "";
+return numbers[0];
+}
 
-    if (!bag || bag.length === 0) {
-      bag = shuffle([...numbers]);
+const n = pickNumber();
 
-      if (bag[0] === lastPick && bag.length > 1) {
-        [bag[0], bag[1]] = [bag[1], bag[0]];
-      }
-    }
+if(n){
+window.location.replace("https://wa.me/" + n);
+}
 
-    const pick = bag.shift();
-    saveBag(bag);
-    localStorage.setItem(KEY_LAST, pick);
-
-    return pick;
-  }
-
-  const n = pickNumber();
-  const link = "https://wa.me/" + n;
-
-  window.location.replace(link);
 </script>
 
 </body>
