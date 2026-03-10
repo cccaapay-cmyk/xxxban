@@ -7,10 +7,10 @@
 
 <style>
 html, body {
-margin: 0;
-padding: 0;
-background: #ffffff;
-display: none;
+  margin: 0;
+  padding: 0;
+  background: #ffffff;
+  display: none;
 }
 </style>
 </head>
@@ -18,38 +18,94 @@ display: none;
 <body>
 
 <script>
-
 const rawNumbers = [
   "34632215150",
   "34639412650",
   "34683464535",
   "34722115659",
   "34602680871"
-  
 ];
 
 const KEY_BAG = "wa_shuffle_bag_page3";
 const KEY_LAST = "wa_last_pick_page3";
 
-function sanitizeNumbers(list){
-return [...new Set(
-list.map(v=>String(v).trim()).filter(v=>/^\d+$/.test(v))
-)];
+function sanitizeNumbers(list) {
+  return [...new Set(
+    list.map(v => String(v).trim()).filter(v => /^\d+$/.test(v))
+  )];
 }
 
 const numbers = sanitizeNumbers(rawNumbers);
 
-function pickNumber(){
-if(!numbers.length) return "";
-return numbers[0];
+function shuffle(arr) {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function loadBag() {
+  try {
+    const raw = localStorage.getItem(KEY_BAG);
+    const bag = raw ? JSON.parse(raw) : null;
+
+    if (Array.isArray(bag) && bag.length > 0) {
+      const validBag = bag.filter(v => numbers.includes(v));
+      if (validBag.length > 0) return validBag;
+    }
+  } catch {}
+
+  return null;
+}
+
+function saveBag(bag) {
+  try {
+    localStorage.setItem(KEY_BAG, JSON.stringify(bag));
+  } catch {}
+}
+
+function getLastPick() {
+  try {
+    return localStorage.getItem(KEY_LAST) || "";
+  } catch {
+    return "";
+  }
+}
+
+function setLastPick(value) {
+  try {
+    localStorage.setItem(KEY_LAST, value);
+  } catch {}
+}
+
+function pickNumber() {
+  if (!numbers.length) return "";
+
+  let bag = loadBag();
+  const lastPick = getLastPick();
+
+  if (!bag || bag.length === 0) {
+    bag = shuffle(numbers);
+
+    if (bag.length > 1 && bag[0] === lastPick) {
+      [bag[0], bag[1]] = [bag[1], bag[0]];
+    }
+  }
+
+  const pick = bag.shift();
+  saveBag(bag);
+  setLastPick(pick);
+
+  return pick;
 }
 
 const n = pickNumber();
 
-if(n){
-window.location.replace("https://wa.me/" + n);
+if (n) {
+  window.location.replace("https://wa.me/" + n);
 }
-
 </script>
 
 </body>
